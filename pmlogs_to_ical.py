@@ -26,6 +26,12 @@ def datetime_from_pm_line(line):
 def formatted_datetime(dt):
     return dt.strftime("%Y%m%dT%H%M%S")
 
+def formatted_timedelta(td):
+    hours = td.seconds / (60*60)
+    minutes = (td.seconds % (60*60)) / 60
+    seconds = td.seconds % 60
+    return "%d:%02d:%02d" % (hours, minutes, seconds)
+
 class State:
     UNKNOWN, WAKE, SLEEP, READ_TIME_WAKE, READ_TIME_SLEEP = range(5)
 
@@ -42,7 +48,6 @@ for line in open(sys.argv[1]):
         if line.startswith(' * Domain: wake'):
             state = State.WAKE
             print "BEGIN:VEVENT"
-            print "SUMMARY:Session"
 
     elif state in (State.UNKNOWN, State.READ_TIME_WAKE):
         if line.startswith(' * Domain: sleep'):
@@ -59,6 +64,8 @@ for line in open(sys.argv[1]):
         if line.startswith(' - Time: '):
             state = State.READ_TIME_SLEEP
             date_stop = datetime_from_pm_line(line)
+            delta = date_stop - date_start
+            print "SUMMARY:Session %s" % formatted_timedelta(delta)
             print "DTEND:%s" % formatted_datetime(date_stop)
             print "END:VEVENT"
 
